@@ -4,20 +4,19 @@ using System.Threading;
 
 class Tetris
 {
-    private static readonly int Width = 10;
-    private static readonly int Height = 20;
+    private static readonly int Width = 10; // Ширина поля
+    private static readonly int Height = 20; // Высота поля
     private static char[,] Field = new char[Height, Width];
     private static List<char[,]> Shapes = new List<char[,]>();
     private static Random Rand = new Random();
 
     static Tetris()
     {
-        // Инициализация формы фигур
-        Shapes.Add(new char[,] { { '■', '■' }, { '■', '■' } }); // Квадрат
-        Shapes.Add(new char[,] { { ' ', '■', ' ' }, { '■', '■', '■' } }); // Z-фигура
-        Shapes.Add(new char[,] { { '■', ' ', ' ' }, { '■', '■', '■' } }); // L-фигура
-        Shapes.Add(new char[,] { { ' ', '■', ' ' }, { '■', '■', '■' } }); // S-фигура
-        Shapes.Add(new char[,] { { '■', '■', '■', '■' } }); // Линия
+        Shapes.Add(new char[,] { { '█', '█' }, { '█', '█' } }); // Квадрат
+        Shapes.Add(new char[,] { { ' ', '█', ' ' }, { '█', '█', '█' } }); // Z-фигура
+        Shapes.Add(new char[,] { { '█', ' ', ' ' }, { '█', '█', '█' } }); // L-фигура
+        Shapes.Add(new char[,] { { ' ', '█', ' ' }, { '█', '█', '█' } }); // S-фигура
+        Shapes.Add(new char[,] { { '█', '█', '█', '█' } }); // Линия
     }
 
     static void Main(string[] args)
@@ -45,7 +44,7 @@ class Tetris
 
         while (true)
         {
-            DrawField(currentShape, shapeX, shapeY);
+            DrawFieldWithBorders(currentShape, shapeX, shapeY);
 
             ConsoleKeyInfo key = WaitForKeyOrTimeout(500);
             if (key.Key == ConsoleKey.LeftArrow)
@@ -78,6 +77,8 @@ class Tetris
 
                 if (!CanMove(currentShape, shapeX, shapeY))
                 {
+                    DrawFieldWithBorders(null, 0, 0); // Показать финальное состояние
+                    Console.SetCursorPosition(Width * 2 + 4, Height + 2);
                     Console.WriteLine("Игра окончена!");
                     break;
                 }
@@ -152,7 +153,6 @@ class Tetris
                     }
                 }
 
-                // Очистить первую строку
                 for (int c = 0; c < Width; c++)
                 {
                     Field[0, c] = ' ';
@@ -163,39 +163,54 @@ class Tetris
         }
     }
 
-    private static void DrawField(char[,] shape, int shapeX, int shapeY)
+    private static void DrawFieldWithBorders(char[,] shape, int shapeX, int shapeY)
     {
         Console.Clear();
 
         char[,] fieldCopy = (char[,])Field.Clone();
-        int shapeHeight = shape.GetLength(0);
-        int shapeWidth = shape.GetLength(1);
-
-        for (int row = 0; row < shapeHeight; row++)
+        if (shape != null)
         {
-            for (int col = 0; col < shapeWidth; col++)
-            {
-                if (shape[row, col] != ' ')
-                {
-                    int newX = shapeX + col;
-                    int newY = shapeY + row;
+            int shapeHeight = shape.GetLength(0);
+            int shapeWidth = shape.GetLength(1);
 
-                    if (newX >= 0 && newX < Width && newY >= 0 && newY < Height)
+            for (int row = 0; row < shapeHeight; row++)
+            {
+                for (int col = 0; col < shapeWidth; col++)
+                {
+                    if (shape[row, col] != ' ')
                     {
-                        fieldCopy[newY, newX] = shape[row, col];
+                        int newX = shapeX + col;
+                        int newY = shapeY + row;
+
+                        if (newX >= 0 && newX < Width && newY >= 0 && newY < Height)
+                        {
+                            fieldCopy[newY, newX] = shape[row, col];
+                        }
                     }
                 }
             }
         }
 
+        // Рамка сверху
+        Console.Write("┌");
+        for (int i = 0; i < Width; i++) Console.Write("──");
+        Console.WriteLine("┐");
+
+        // Игровое поле
         for (int row = 0; row < Height; row++)
         {
+            Console.Write("│"); // Левая граница
             for (int col = 0; col < Width; col++)
             {
-                Console.Write(fieldCopy[row, col] == ' ' ? '.' : fieldCopy[row, col]);
+                Console.Write(fieldCopy[row, col] == ' ' ? "  " : $" {fieldCopy[row, col]}");
             }
-            Console.WriteLine();
+            Console.WriteLine("│"); // Правая граница
         }
+
+        // Рамка снизу
+        Console.Write("└");
+        for (int i = 0; i < Width; i++) Console.Write("──");
+        Console.WriteLine("┘");
     }
 
     private static char[,] GetRandomShape()
@@ -232,6 +247,6 @@ class Tetris
             }
             Thread.Sleep(10);
         }
-        return new ConsoleKeyInfo((char)0, ConsoleKey.NoName, false, false, false); // Исправленный вариант
+        return new ConsoleKeyInfo((char)0, ConsoleKey.NoName, false, false, false);
     }
 }
